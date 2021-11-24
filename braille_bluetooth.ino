@@ -1,10 +1,6 @@
+//resto de codigo  para usar en futuro para  reconocer letra en caso de conectar directamente un teclado bluetooth
+
 /*
-este es el primer codigo de partida para desarrollar 
-*/
-
-
-#include <ESP32Servo.h>
-
 //Braille binario
 int binary[63][8]={{0,0,0,0,0,0,0,0},{0,1,1,0,1,1,0,0},{0,0,0,1,0,0,0,0},{0,1,0,1,1,1,0,0},{1,1,1,0,0,1,0,0},{1,1,0,0,0,1,0,0},{1,1,1,0,1,1,0,0},{1,0,1,1,1,1,0,0},{0,1,1,1,1,1,0,0},{1,0,0,0,0,1,0,0},{0,1,0,0,1,1} ,{0,0,0,0,0,1} ,{0,0,0,0,1,1,0,0},{0,1,0,0,0,1,0,0},{0,1,0,0,1,0,0,0},
         {0,0,0,1,1,1,0,0},{0,0,1,0,0,0,0,0},{0,0,1,0,1,0,0,0},{0,0,1,1,0,0,0,0},{0,0,1,1,0,1,0,0},{0,0,1,0,0,1,0,0},{0,0,1,1,1,0,0,0},{0,0,1,1,1,1,0,0},{0,0,1,0,1,1,0,0},{0,0,0,1,1,0,0,0},{1,0,0,1,0,1,0,0},{0,0,0,1,0,1,0,0},{1,0,1,0,0,1,0,0},{1,1,1,1,1,1,0,0},{0,1,0,1,1,0,0,0},{1,1,0,1,0,1,0,0},
@@ -17,290 +13,431 @@ char ascii[63]={' ', '!', '"', '#', '$', '%', '&', '(', ')', '*', '+', ',', '-',
         '@','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
          '[','\\',']','^','_'};
 
-// Servo servo1, servo2, servo3, servo4, servo5, servo6;
+
 
 int Received;
 char data[16] ="brailletouch 01";  
 char input;
 int* output;
 int temp =0;
-int velocidad = 500;
-
-// posicioens de los servos
-int right1 = 0;
-int right2 = 0;
-int left1 = 45;
-int left2 = 45; 
-
-Servo dot1;
-Servo dot2;
-Servo dot3;
-Servo dot4;
-Servo dot5;
-Servo dot6;
-Servo dot7;
-Servo dot8;
-
- int minUs = 500;
- int maxUs = 2400;
-
-// These are all GPIO pins on the ESP32
-// Recommended pins include 2,4,12-19,21-23,25-27,32-33 
- 
-int dot1Pin = 15; // Un servo en el pin 15
-int dot2Pin = 16; // Otro servo en el pin 16
-int dot3Pin = 14; // Un servo en el pin 14
-int dot4Pin = 32; // Otro servo en el pin 32
-int dot5Pin = 4; // Un servo en el pin 4
-int dot6Pin = 33; // Otro servo en el pin 33
-int dot7Pin = 19; // Otro servo en el pin 19
-int dot8Pin = 21; // Otro servo en el pin 21
+*/
 
 
-char val;
-String grados;
-int angulo;
+
+#include "BluetoothSerial.h"
+
+#include <ESP32Servo.h>
+#include <Stream.h> // Para poder tener una referencia a Serial
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+
+BluetoothSerial SerialBT;
+
+char data[16] ="brailletouch 01"; 
+int velocidad = 100;
+
 ESP32PWM pwm;
-
-void setup() 
-{  
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
-  Serial.begin(115200);
-  dot1.setPeriodHertz(50);      // Standard 50hz servo
-  dot2.setPeriodHertz(50);      // Standard 50hz servo
-  dot3.setPeriodHertz(50);      // Standard 50hz servo
-  dot4.setPeriodHertz(50);      // Standard 50hz servo
-  dot5.setPeriodHertz(50);      // Standard 50hz servo
-  dot6.setPeriodHertz(50);      // Standard 50hz servo 
-  dot7.setPeriodHertz(50);      // Standard 50hz servo      
-  dot8.setPeriodHertz(50);      // Standard 50hz servo      
-        
- /*   pinMode(2, OUTPUT);  
-    pinMode(3, OUTPUT);  
-    pinMode(4, OUTPUT);  
-    pinMode(5, OUTPUT);  
-    pinMode(6, OUTPUT);  
-    pinMode(7, OUTPUT);
-    pinMode(8, OUTPUT);   
-    Serial.begin(9600); 
-
+// posicioens de los servos
 int right1 = 135;
 int right2 = 180;
 int center = 90;
 int left1 = 45;
 int left2 = 0;
-    
-    servo1.attach(3);
-    servo2.attach(5);
-    servo3.attach(6);
-    servo4.attach(9);
-    servo5.attach(10);
-    servo6.attach(11);*/
-}  
+int pausacaract = 20; // minimo 15 recomendado 20
 
-void servo_disp(int* output)
-{
-   if( output[0] == 1 )
-   {
-    dot1.write(0);
-//    digitalWrite(k+2, HIGH);
-     Serial.print("punto 1...\n");
-   }
-   else
-   {
-    dot1.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-    if( output[1] == 1 )
-   {
-    dot2.write(0);
-     Serial.print("punto 2...\n");
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot2.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-    if( output[2] == 1 )
-   {
-    dot3.write(0);
-     Serial.print("punto 3...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot3.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-    if( output[3] == 1 )
-   {
-    dot4.write(0);
-     Serial.print("punto 4...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot4.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-    if( output[4] == 1 )
-   {
-    dot5.write(0);
-     Serial.print("punto 5...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot5.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-    if( output[5] == 1 )
-   {
-    dot6.write(0);
-     Serial.print("punto 6...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot6.write(45);
-//    digitalWrite(k+2, LOW);
-   }
-   if( output[6] == 1 )
-   {
-    dot7.write(0);
-     Serial.print("punto 7...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot7.write(45);
-//    digitalWrite(k+2, LOW);
-   }if( output[7] == 1 )
-   {
-    dot8.write(0);
-     Serial.print("punto 3...\n");    
-//    digitalWrite(k+2, HIGH);
-   }
-   else
-   {
-    dot8.write(45);
-//    digitalWrite(k+2, LOW);
-   }
+Servo sevo1;
+Servo sevo2;
+Servo sevo3;
+Servo sevo4;
+//Servo sevo5;
+//Servo sevo6;
+//Servo sevo7;
+//Servo sevo8;
 
+
+
+int minUs = 500;
+ int maxUs = 2400;
+// These are all GPIO pins on the ESP32
+// Recommended pins include 2,4,12-19,21-23,25-27,32-33 
+int sevo1Pin = 15; // Un servo en el pin 15
+int sevo2Pin = 17; // Otro servo en el pin 16
+int sevo3Pin = 14; // Un servo en el pin 14
+int sevo4Pin = 32; // Otro servo en el pin 32
+//int sevo5Pin = 4; // Un servo en el pin 4
+//int sevo6Pin = 33; // Otro servo en el pin 33
+//int sevo7Pin = 19; // Otro servo en el pin 19
+//int sevo8Pin = 21; // Otro servo en el pin 21
+
+
+// clase lee serial
+class LeeUTF8 {
+  public:
+    LeeUTF8(Stream &entrada) :
+      entrada(entrada),
+      valorTemporal(0),
+      valor(-1),
+      bytesTotales(0),
+      bytesLeidos(0) {};
+    int16_t available() {
+      if (this->valor == -1) {
+        this->valor = this->read();
+      }
+      return (this->valor != -1);
+    }
+    int16_t read() {
+      if (this->valor != -1) {
+        int16_t valorLeido = this->valor;
+        this->valor = -1;
+        return valorLeido;
+      }
+      int16_t lectura = this->entrada.read();
+      if (lectura < 0) {
+        return -1;
+      }
+      if ((lectura & 0b11000000) == 0b10000000) {      // Los bytes que vienen después del primero
+        if (this->bytesTotales > 1) { // Si se esperan en total más de un byte
+          this->valorTemporal <<= 6; // Desplazamos el valor 6 bits a la izquierda 
+          this->valorTemporal |= lectura & 0b00111111; // 10xxxxxx
+          if (++this->bytesLeidos >= this->bytesTotales) { // Si ya se han leído todos los bytes esperados
+            return this->resultado(this->valorTemporal); // Devolvemos el resultado
+          }
+          else {
+            return -1; // No hay valor disponible aún
+          }
+        }
+        else {
+          return this->resultado(-2); // Error
+        }
+      }
+      else if ((lectura & 0b11100000) == 0b11000000) { // El primero de dos bytes
+        this->valorTemporal = lectura & 0b00011111;    // 110yyyyy
+        return this->empezando(2);
+      }
+      else if ((lectura & 0b11110000) == 0b11100000) { // El primero de tres bytes
+        this->valorTemporal = lectura & 0b00001111;    // 1110zzzz
+        return this->empezando(3);
+      }
+      else if ((lectura & 0b11111000) == 0b11110000) { // El primero de cuatro bytes 
+        this->valorTemporal = lectura & 0b00000111;    // 11110uuu
+        return this->empezando(4);
+      }
+      else { // Asumimos que es un solo byte (aunque sea erróneo)
+        return this->resultado(lectura);
+      }
+    }
+  private:
+    Stream &entrada;
+    int16_t valorTemporal;
+    int16_t valor;
+    uint8_t bytesTotales;
+    uint8_t bytesLeidos;
+    int16_t empezando(uint8_t setBytesTotales) {
+      this->bytesTotales = setBytesTotales;
+      this->bytesLeidos = 1;
+      return -1;
+    }
+    int16_t resultado(int16_t valorObtenido) {
+      this->bytesTotales = 0;
+      this->bytesLeidos = 0;
+      this->valor = -1;
+      return valorObtenido;
+    }
+};
+
+// clase lee bluetooth 
+
+
+class LeeBTUTF8 {
+  public:
+    LeeBTUTF8(Stream &entrada) :
+      entrada(entrada),
+      valorTemporal(0),
+      valor(-1),
+      bytesTotales(0),
+      bytesLeidos(0) {};
+    int16_t available() {
+      if (this->valor == -1) {
+        this->valor = this->read();
+      }
+      return (this->valor != -1);
+    }
+    int16_t read() {
+      if (this->valor != -1) {
+        int16_t valorLeido = this->valor;
+        this->valor = -1;
+        return valorLeido;
+      }
+      int16_t lectura = this->entrada.read();
+      if (lectura < 0) {
+        return -1;
+      }
+      if ((lectura & 0b11000000) == 0b10000000) {      // Los bytes que vienen después del primero
+        if (this->bytesTotales > 1) { // Si se esperan en total más de un byte
+          this->valorTemporal <<= 6; // Desplazamos el valor 6 bits a la izquierda 
+          this->valorTemporal |= lectura & 0b00111111; // 10xxxxxx
+          if (++this->bytesLeidos >= this->bytesTotales) { // Si ya se han leído todos los bytes esperados
+            return this->resultado(this->valorTemporal); // Devolvemos el resultado
+          }
+          else {
+            return -1; // No hay valor disponible aún
+          }
+        }
+        else {
+          return this->resultado(-2); // Error
+        }
+      }
+      else if ((lectura & 0b11100000) == 0b11000000) { // El primero de dos bytes
+        this->valorTemporal = lectura & 0b00011111;    // 110yyyyy
+        return this->empezando(2);
+      }
+      else if ((lectura & 0b11110000) == 0b11100000) { // El primero de tres bytes
+        this->valorTemporal = lectura & 0b00001111;    // 1110zzzz
+        return this->empezando(3);
+      }
+      else if ((lectura & 0b11111000) == 0b11110000) { // El primero de cuatro bytes 
+        this->valorTemporal = lectura & 0b00000111;    // 11110uuu
+        return this->empezando(4);
+      }
+      else { // Asumimos que es un solo byte (aunque sea erróneo)
+        return this->resultado(lectura);
+      }
+    }
+  private:
+    Stream &entrada;
+    int16_t valorTemporal;
+    int16_t valor;
+    uint8_t bytesTotales;
+    uint8_t bytesLeidos;
+    int16_t empezando(uint8_t setBytesTotales) {
+      this->bytesTotales = setBytesTotales;
+      this->bytesLeidos = 1;
+      return -1;
+    }
+    int16_t resultado(int16_t valorObtenido) {
+      this->bytesTotales = 0;
+      this->bytesLeidos = 0;
+      this->valor = -1;
+      return valorObtenido;
+    }
+};
+
+ LeeUTF8 leeUTF8(Serial);
+ LeeBTUTF8 LeeBTUTF8(SerialBT);
+
+void setup() {
+  
+  ESP32PWM::allocateTimer(0);
+  ESP32PWM::allocateTimer(1);
+  ESP32PWM::allocateTimer(2);
+  ESP32PWM::allocateTimer(3);
+  Serial.begin(115200);
+  SerialBT.begin("ESP32test"); //Bluetooth device name
+  Serial.println("The device started, now you can pair it with bluetooth!");
+  sevo1.setPeriodHertz(50);      // Standard 50hz servo
+  sevo2.setPeriodHertz(50);      // Standard 50hz servo
+  sevo3.setPeriodHertz(50);      // Standard 50hz servo
+  sevo4.setPeriodHertz(50);      // Standard 50hz servo
+//  sevo5.setPeriodHertz(50);      // Standard 50hz servo
+//  sevo6.setPeriodHertz(50);      // Standard 50hz servo 
+//  sevo7.setPeriodHertz(50);      // Standard 50hz servo      
+//  sevo8.setPeriodHertz(50);      // Standard 50hz servo    
 }
 
-void loop()
-{ 
-      
-  if (Serial.available() > 0)
-  {
-  dot1.attach(dot1Pin, minUs, maxUs);
-  dot2.attach(dot2Pin, minUs, maxUs);
-  pwm.attachPin(27, 10000);//10khz
-  dot3.attach(dot3Pin, minUs, maxUs);
-  dot4.attach(dot4Pin, minUs, maxUs);
-  dot5.attach(dot5Pin, minUs, maxUs);  
-  dot6.attach(dot6Pin, minUs, maxUs);
-  dot7.attach(dot6Pin, minUs, maxUs);
-  dot8.attach(dot6Pin, minUs, maxUs);
-
-    
-    while(Serial.available() > 0)
-    {
 
 
-
-
-      
-      Serial.print("I am reading...\n");
-      Received = Serial.read();
-      Serial.print(Received);
-      Serial.print(": ");
-      Serial.print((char)Received);
-      Serial.print("\n");
-      input= (char)Received;
-  
-              if( input >=65 and input<91 )
-          {
-            //capital letters
-            temp = 1;
-             input += 'a' -'A' ;
-          }
-      
-      for (int j=0 ; j<sizeof(ascii); j++)
-      {
-     
-        if(input == ascii[j])
-      {
-        output=binary[j];
-        if( temp == 1 )
-        {
-          //capital letters
-          dot1.write(45);
-          dot2.write(45);
-          dot3.write(45);
-          dot4.write(45);
-          dot5.write(45);
-          dot6.write(45);
-          dot7.write(0);
-          dot8.write(45); 
-           Serial.print("punto 7...\n");            
-          delay(50);
-//          servo6.write(1);
-          temp = 0;
-        }
-        else if(input>= '1' && input<='9')
-        {
-          //digits
-          dot1.write(0);
-          dot2.write(0);
-          dot3.write(0);
-          dot4.write(0);
-          dot5.write(0);
-          dot6.write(45);
-          dot7.write(0);
-          dot8.write(0);
-          Serial.print("punto 6...\n");
-          delay(50);
-//          servo2.write(1);
-//          servo4.write(1);
-//          servo5.write(1);
-//          servo6.write(1);
-
-        }
-         servo_disp(output);
-         delay(velocidad);         //   controla la velocidad  con que sale el carater
-         
-         break;
-        }
-      }     
+void loop() {
+  // revisa si hay dato en serial y  prosesa 
+  if (leeUTF8.available()) {
+    sevo1.attach(sevo1Pin, minUs, maxUs);
+    sevo2.attach(sevo2Pin, minUs, maxUs);
+    pwm.attachPin(27, 10000);//10khz
+    sevo3.attach(sevo3Pin, minUs, maxUs);
+    sevo4.attach(sevo4Pin, minUs, maxUs);
+//    sevo5.attach(sevo5Pin, minUs, maxUs);  
+//    sevo6.attach(sevo6Pin, minUs, maxUs);
+//    sevo7.attach(sevo6Pin, minUs, maxUs);
+//    sevo8.attach(sevo6Pin, minUs, maxUs);
+ 
+    int dato = leeUTF8.read(); // Leemos el dato ya disponible. Cuidado, la variable ha de int;
+    if ((dato >= 0x2800) && (dato <= 0x28FF)) {
+      Serial.println();                   // Deja una línea en blanco
+      servo_disp(dato);
+      delay(velocidad);         //   controla la velocidad  con que sale el carater
+        
     }
-
- grados = "";
-
-    
-  }
-  else
+   else
   {
-    Serial.print(Serial.available());
-    int zero[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-    servo_disp(zero);
-    delay(2000);
-    dot1.detach();
-    dot2.detach();
-    dot3.detach();
-    dot4.detach();
-    dot5.detach();
-    dot6.detach();
-    dot7.detach();
-    dot8.detach();
+//    Serial.print(Serial.available());
+  
+    delay(50);
+    sevo1.detach();
+    sevo2.detach();
+    sevo3.detach();
+    sevo4.detach();
+//    sevo5.detach();
+//    sevo6.detach();
+//    sevo7.detach();
+//    sevo8.detach();
     pwm.detachPin(27);
 
+    }  
+    
+//  Serial.println(dato, HEX);
   }
+
+  //rebisa si hay dato el bloutooth y prosesa 
+
+  else if (LeeBTUTF8.available()) {
+    sevo1.attach(sevo1Pin, minUs, maxUs);
+    sevo2.attach(sevo2Pin, minUs, maxUs);
+    pwm.attachPin(27, 10000);//10khz
+    sevo3.attach(sevo3Pin, minUs, maxUs);
+    sevo4.attach(sevo4Pin, minUs, maxUs);
+//    sevo5.attach(sevo5Pin, minUs, maxUs);  
+//    sevo6.attach(sevo6Pin, minUs, maxUs);
+//    sevo7.attach(sevo6Pin, minUs, maxUs);
+//    sevo8.attach(sevo6Pin, minUs, maxUs);
+ 
+    int dato = LeeBTUTF8.read(); // Leemos el dato ya disponible. Cuidado, la variable ha de int;
+    if ((dato >= 0x2800) && (dato <= 0x28FF)) {
+      Serial.println();                   // Deja una línea en blanco
+      servo_disp(dato);
+      delay(velocidad);         //   controla la velocidad  con que sale el carater
+        
+    }
+   else
+  {
+//    Serial.print(Serial.available());
+  
+    delay(50);
+    sevo1.detach();
+    sevo2.detach();
+    sevo3.detach();
+    sevo4.detach();
+//    sevo5.detach();
+//    sevo6.detach();
+//    sevo7.detach();
+//    sevo8.detach();
+    pwm.detachPin(27);
+
+    }  
+    
+//  Serial.println(dato, HEX);
+  }
+ 
 }
 
 
+
+
+void servo_disp(int dato)
+{
+  if ((dato >= 0x2800) && (dato <= 0x28FF)) {
+  sevo1.write(center);
+  delay(pausacaract);
+  sevo2.write(center);
+  delay(pausacaract);
+  sevo3.write(center);
+  delay(pausacaract);
+  sevo4.write(center);
+  delay(pausacaract);
+//  sevo5.write(center);
+//  delay(pausacaract);
+//  sevo6.write(center);
+//  delay(pausacaract);
+//  sevo7.write(center);
+//  delay(pausacaract);
+//  sevo8.write(center);
+//  delay(pausacaract);
+  }
+      
+    if(( bitRead(dato, 0) == 1) && ( bitRead(dato, 1) == 1 ) )
+     {
+       sevo1.write(left2);
+       delay(pausacaract);
+       Serial.print("punto 1 y 2...\n");     
+      }
+ if(( bitRead(dato, 0) == 1) && ( bitRead(dato, 1) == 0 ) )
+      {  
+    
+       sevo1.write(left1);
+       delay(pausacaract);
+       Serial.print("punto 1...\n"); 
+      
+      }
+   
+ if(( bitRead(dato, 1) == 1) && ( bitRead(dato, 0) == 0 ))
+     {
+      sevo1.write(right1);
+      delay(pausacaract);
+       Serial.print("punto 2...\n");
+
+   }
+   
+    if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 6) == 1 ) )
+     {    
+      sevo2.write(left2);
+      delay(pausacaract);
+      Serial.print("punto 3 y 7...\n");
+      }
+ if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 6) == 0 ) )
+      { 
+       sevo2.write(left1);
+       delay(pausacaract);
+       Serial.print("punto 3...\n");
+       }
+  if(( bitRead(dato, 2) == 0) && ( bitRead(dato, 6) == 1 ) )
+       {
+       sevo2.write(right1);
+       delay(pausacaract);
+       Serial.print("punto 7...\n");    
+//    digitalWrite(k+2, HIGH);
+        }
+           
+  
+     if(( bitRead(dato, 3) == 1) && ( bitRead(dato, 4) == 1 ) )
+       { 
+      sevo3.write(left2);
+      delay(pausacaract);
+      Serial.print("punto 4 y 5...\n");  
+       }
+ if(( bitRead(dato, 3) == 1) && ( bitRead(dato, 4) == 0 ) )
+      {
+    sevo3.write(left1);
+    delay(pausacaract);
+    Serial.print("punto 4...\n");    
+     }
+   
+ if(( bitRead(dato, 4) == 1) && ( bitRead(dato, 3) == 0 ) )
+    {
+    sevo3.write(right1);
+    delay(pausacaract);
+     Serial.print("punto 5...\n");    
+//    digitalWrite(k+2, HIGH);
+    }
+   
+    if(( bitRead(dato, 5) == 1) && ( bitRead(dato, 7) == 1 ) )
+     { 
+      sevo4.write(left2);
+      delay(pausacaract);
+      Serial.print("punto 6 y 8..\n");  
+     }
+ if(( bitRead(dato, 5) == 1) && ( bitRead(dato, 7) == 0 ) )
+     {
+      sevo4.write(left1);
+      delay(pausacaract);
+     Serial.print("punto 6...\n");  
+     }
+ if(( bitRead(dato, 7) == 1) && ( bitRead(dato, 5) == 0 ) )
+     {
+     sevo4.write(right1);
+     delay(pausacaract);
+     Serial.print("punto 8...\n");    
+//   digitalWrite(k+2, HIGH);
+   }
+ 
+}
