@@ -191,9 +191,27 @@ void loop() {
 //      sevo7.attach(sevo6Pin, minUs, maxUs);
 //      sevo8.attach(sevo6Pin, minUs, maxUs);
    
-        Serial.println();                   // Deja una línea en blanco
+        Serial.println("recibiendo datos braile");                   // recibe datos braille
         Serial.println();                   // Deja una línea en blanco
         servo_disp(dato);
+        delay(velocidad);         //   controla la velocidad  con que sale el carater
+        
+      }
+   else if ((dato >= 0x0020) && (dato <= 0x27FF) || (dato >= 0x2900)) {  // lo datos no son braille
+//        sevo1.attach(sevo1Pin, minUs, maxUs);
+//        sevo2.attach(sevo2Pin, minUs, maxUs);
+//        pwm.attachPin(27, 10000);//10khz
+//        sevo3.attach(sevo3Pin, minUs, maxUs);
+//        sevo4.attach(sevo4Pin, minUs, maxUs);
+//      sevo5.attach(sevo5Pin, minUs, maxUs);  
+//      sevo6.attach(sevo6Pin, minUs, maxUs);
+//      sevo7.attach(sevo6Pin, minUs, maxUs);
+//      sevo8.attach(sevo6Pin, minUs, maxUs);
+   
+        Serial.println("datos no braile");                   // recibe datos no braille
+        Serial.println(dato, HEX);
+        Serial.println();                   // Deja una línea en blanco
+//        servo_disp(dato);
         delay(velocidad);         //   controla la velocidad  con que sale el carater
         
       }
@@ -263,8 +281,7 @@ void servo_disp(int dato)
        delay(pausacaract);    */
        Serial.print("Espacio en blanco...\n"); 
        SerialBT.print("Espacio en blanco...\n");    
-      }
-      
+      }      
     if(( bitRead(dato, 0) == 1) && ( bitRead(dato, 3) == 1 ) )
      {
        sevo1.write(left2);   
@@ -272,7 +289,7 @@ void servo_disp(int dato)
        Serial.print("punto 1 y 4...\n"); 
        SerialBT.print("punto 1 y 4...\n");    
       }
- if(( bitRead(dato, 0) == 1) && ( bitRead(dato, 3) == 0 ) )
+     if(( bitRead(dato, 0) == 1) && ( bitRead(dato, 3) == 0 ) )
       {  
     
        sevo1.write(left1);
@@ -280,17 +297,14 @@ void servo_disp(int dato)
        Serial.print("punto 1...\n");
        SerialBT.print("punto 1...\n"); 
       
-      }
-   
- if(( bitRead(dato, 3) == 1) && ( bitRead(dato, 0) == 0 ))
+      }   
+    if(( bitRead(dato, 3) == 1) && ( bitRead(dato, 0) == 0 ))
      {
       sevo1.write(right1);
       delay(pausacaract);
        Serial.print("punto 4...\n");
        SerialBT.print("punto 4...\n");
-
-   }
-   
+     }   
     if(( bitRead(dato, 1) == 1) && ( bitRead(dato, 4) == 1 ) )
      {    
       sevo2.write(left2);
@@ -298,47 +312,43 @@ void servo_disp(int dato)
       Serial.print("punto 2 y 5...\n");
       SerialBT.print("punto 2 y 5...\n");
       }
- if(( bitRead(dato, 1) == 1) && ( bitRead(dato, 4) == 0 ) )
+if(( bitRead(dato, 1) == 1) && ( bitRead(dato, 4) == 0 ) )
       { 
        sevo2.write(left1);
        delay(pausacaract);
        Serial.print("punto 2...\n");
        SerialBT.print("punto 2...\n");
        }
-  if(( bitRead(dato, 1) == 0) && ( bitRead(dato, 4) == 1 ) )
+if(( bitRead(dato, 1) == 0) && ( bitRead(dato, 4) == 1 ) )
        {
        sevo2.write(right1);
        delay(pausacaract);
        Serial.print("punto 5...\n"); 
        SerialBT.print("punto 5...\n");    
 //    digitalWrite(k+2, HIGH);
-        }
-           
-  
-     if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 5) == 1 ) )
-       { 
+       }
+      if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 5) == 1 ) )
+      { 
       sevo3.write(left2);
       delay(pausacaract);
       Serial.print("punto 3 y 6...\n");
       SerialBT.print("punto 3 y 6...\n");  
-       }
- if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 5) == 0 ) )
+      }
+      if(( bitRead(dato, 2) == 1) && ( bitRead(dato, 5) == 0 ) )
       {
     sevo3.write(left1);
     delay(pausacaract);
     Serial.print("punto 3...\n");
     SerialBT.print("punto 3...\n");    
-     }
-   
- if(( bitRead(dato, 5) == 1) && ( bitRead(dato, 3) == 0 ) )
+     }   
+    if(( bitRead(dato, 5) == 1) && ( bitRead(dato, 3) == 0 ) )
     {
     sevo3.write(right1);
     delay(pausacaract);
      Serial.print("punto 6...\n");
      SerialBT.print("punto 6...\n");    
 //    digitalWrite(k+2, HIGH);
-    }
-   
+     }   
     if(( bitRead(dato, 6) == 1) && ( bitRead(dato, 7) == 1 ) )
      { 
       sevo4.write(left2);
@@ -346,14 +356,14 @@ void servo_disp(int dato)
       Serial.print("punto 7 y 8..\n");
       SerialBT.print("punto 7 y 8..\n");  
      }
- if(( bitRead(dato, 6) == 1) && ( bitRead(dato, 7) == 0 ) )
+    if(( bitRead(dato, 6) == 1) && ( bitRead(dato, 7) == 0 ) )
      {
       sevo4.write(left1);
       delay(pausacaract);
      Serial.print("punto 7...\n");
      SerialBT.print("punto 7...\n");  
      }
- if(( bitRead(dato, 7) == 1) && ( bitRead(dato, 6) == 0 ) )
+    if(( bitRead(dato, 7) == 1) && ( bitRead(dato, 6) == 0 ) )
      {
      sevo4.write(right1);
      delay(pausacaract);
